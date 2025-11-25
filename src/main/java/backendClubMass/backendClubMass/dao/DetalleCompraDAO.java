@@ -1,4 +1,7 @@
 package backendClubMass.backendClubMass.dao;
 
-public interface DetalleCompraDAO {
+import backendClubMass.backendClubMass.model.DetalleCompra;
+
+public interface DetalleCompraDAO extends GenericDAO<DetalleCompra, Integer> {
+
 }

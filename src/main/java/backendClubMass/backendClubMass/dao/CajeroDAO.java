@@ -1,4 +1,7 @@
 package backendClubMass.backendClubMass.dao;
 
-public interface CajeroDAO {
+import backendClubMass.backendClubMass.model.Cajero;
+
+public interface CajeroDAO extends GenericDAO<Cajero, Integer> {
+
 }

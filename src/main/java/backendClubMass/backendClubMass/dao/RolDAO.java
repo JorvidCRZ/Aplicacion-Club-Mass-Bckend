@@ -1,4 +1,7 @@
-package backendClubMass.backendClubMass.dao.daoImpl;
+package backendClubMass.backendClubMass.dao;
 
-public interface RolDAO {
+import backendClubMass.backendClubMass.model.Rol;
+
+public interface RolDAO extends GenericDAO<Rol, Integer> {
+
 }

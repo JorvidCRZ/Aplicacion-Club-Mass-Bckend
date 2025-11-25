@@ -1,4 +1,7 @@
 package backendClubMass.backendClubMass.dao;
 
-public interface PremiosDAO {
+import backendClubMass.backendClubMass.model.Premio;
+
+public interface PremiosDAO extends GenericDAO<Premio, Integer> {
+
 }

@@ -1,4 +1,8 @@
 package backendClubMass.backendClubMass.dao;
 
-public interface UsuarioDAO {
+import backendClubMass.backendClubMass.model.Usuario;
+
+public interface UsuarioDAO extends GenericDAO<Usuario, Integer> {
+
+    Usuario findByUsername(String username);
 }

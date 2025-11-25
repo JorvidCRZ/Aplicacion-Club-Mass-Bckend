@@ -1,4 +1,7 @@
 package backendClubMass.backendClubMass.dao;
 
-public interface CanjeDAO {
+import backendClubMass.backendClubMass.model.Canje;
+
+public interface CanjeDAO extends GenericDAO<Canje, Integer> {
+
 }

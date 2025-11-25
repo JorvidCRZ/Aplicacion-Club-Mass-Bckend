@@ -1,4 +1,7 @@
 package backendClubMass.backendClubMass.dao;
 
-public interface AdministradorDAO {
+import backendClubMass.backendClubMass.model.Administrador;
+
+public interface AdministradorDAO extends GenericDAO<Administrador, Integer> {
+
 }

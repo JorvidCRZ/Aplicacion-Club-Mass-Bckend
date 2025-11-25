@@ -1,4 +1,8 @@
 package backendClubMass.backendClubMass.dao;
 
-public interface ClienteDAO {
+import backendClubMass.backendClubMass.model.Cliente;
+
+public interface ClienteDAO extends GenericDAO<Cliente, Integer> {
+
+    Cliente findByDni(String dni);
 }
