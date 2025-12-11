@@ -1,170 +1,67 @@
 package backendClubMass.backendClubMass.dao.daoImpl;
 
 import backendClubMass.backendClubMass.dao.PuntosDAO;
-import backendClubMass.backendClubMass.model.Campaña;
-import backendClubMass.backendClubMass.model.Cliente;
 import backendClubMass.backendClubMass.model.Puntos;
-import backendClubMass.backendClubMass.utils.HikariDataAccess;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Repository;
 
-import java.sql.*;
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
 
+@Repository
+@Transactional
 public class PuntosDAOImpl implements PuntosDAO {
 
-    private final HikariDataAccess hikari = new HikariDataAccess();
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
-    public Puntos create(Puntos p) {
-        String sql = "INSERT INTO puntos (idCliente, idCampaña, puntosGanados, puntosCanjeados) VALUES (?,?,?,?)";
-        try (Connection conn = hikari.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, p.getCliente().getIdCliente());
-            ps.setInt(2, p.getCampaña().getIdCampaña());
-            ps.setBigDecimal(3, p.getPuntosGanados() == null ? null : java.math.BigDecimal.valueOf(p.getPuntosGanados()));
-            ps.setBigDecimal(4, p.getPuntosCanjeados() == null ? null : java.math.BigDecimal.valueOf(p.getPuntosCanjeados()));
-            ps.executeUpdate();
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) p.setIdPuntos(rs.getInt(1));
-            }
-            return read(p.getIdPuntos());
-        } catch (SQLException e) {
-            throw new RuntimeException("Error creando puntos", e);
-        }
+    public Puntos create(Puntos entity) {
+        entityManager.persist(entity);
+        return entity;
     }
 
     @Override
     public Puntos read(Integer id) {
-        String sql = "SELECT pt.*, c.nombreCampaña FROM puntos pt JOIN campaña c ON pt.idCampaña = c.idCampaña WHERE pt.idPuntos = ?";
-        try (Connection conn = hikari.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Puntos p = new Puntos();
-                    p.setIdPuntos(rs.getInt("idPuntos"));
-                    Cliente cl = new Cliente();
-                    cl.setIdCliente(rs.getInt("idCliente"));
-                    p.setCliente(cl);
-                    Campaña camp = new Campaña();
-                    camp.setIdCampaña(rs.getInt("idCampaña"));
-                    camp.setNombreCampaña(rs.getString("nombreCampaña"));
-                    p.setCampaña(camp);
-                    p.setPuntosGanados(rs.getBigDecimal("puntosGanados") != null ? rs.getBigDecimal("puntosGanados").doubleValue() : null);
-                    p.setPuntosCanjeados(rs.getBigDecimal("puntosCanjeados") != null ? rs.getBigDecimal("puntosCanjeados").doubleValue() : null);
-                    Timestamp ts = rs.getTimestamp("fechaRegistro");
-                    p.setFechaRegistro(ts != null ? ts.toLocalDateTime() : null);
-                    return p;
-                } else return null;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error leyendo puntos", e);
-        }
+        return entityManager.find(Puntos.class, id);
     }
 
     @Override
-    public Puntos update(Puntos p) {
-        String sql = "UPDATE puntos SET idCliente=?, idCampaña=?, puntosGanados=?, puntosCanjeados=? WHERE idPuntos=?";
-        try (Connection conn = hikari.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, p.getCliente().getIdCliente());
-            ps.setInt(2, p.getCampaña().getIdCampaña());
-            ps.setBigDecimal(3, p.getPuntosGanados() == null ? null : java.math.BigDecimal.valueOf(p.getPuntosGanados()));
-            ps.setBigDecimal(4, p.getPuntosCanjeados() == null ? null : java.math.BigDecimal.valueOf(p.getPuntosCanjeados()));
-            ps.setInt(5, p.getIdPuntos());
-            int affected = ps.executeUpdate();
-            return affected > 0 ? read(p.getIdPuntos()) : null;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error actualizando puntos", e);
-        }
+    public Puntos update(Puntos entity) {
+        return entityManager.merge(entity);
     }
 
     @Override
     public boolean delete(Integer id) {
-        String sql = "DELETE FROM puntos WHERE idPuntos = ?";
-        try (Connection conn = hikari.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error eliminando puntos", e);
+        Puntos puntos = entityManager.find(Puntos.class, id);
+        if (puntos != null) {
+            entityManager.remove(puntos);
+            return true;
         }
+        return false;
     }
 
     @Override
     public List<Puntos> findAll() {
-        String sql = "SELECT pt.*, c.nombreCampaña FROM puntos pt JOIN campaña c ON pt.idCampaña = c.idCampaña ORDER BY pt.idPuntos";
-        List<Puntos> list = new ArrayList<>();
-        try (Connection conn = hikari.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Puntos p = new Puntos();
-                p.setIdPuntos(rs.getInt("idPuntos"));
-                Cliente cl = new Cliente();
-                cl.setIdCliente(rs.getInt("idCliente"));
-                p.setCliente(cl);
-                Campaña camp = new Campaña();
-                camp.setIdCampaña(rs.getInt("idCampaña"));
-                camp.setNombreCampaña(rs.getString("nombreCampaña"));
-                p.setCampaña(camp);
-                p.setPuntosGanados(rs.getBigDecimal("puntosGanados") != null ? rs.getBigDecimal("puntosGanados").doubleValue() : null);
-                p.setPuntosCanjeados(rs.getBigDecimal("puntosCanjeados") != null ? rs.getBigDecimal("puntosCanjeados").doubleValue() : null);
-                Timestamp ts = rs.getTimestamp("fechaRegistro");
-                p.setFechaRegistro(ts != null ? ts.toLocalDateTime() : null);
-                list.add(p);
-            }
-            return list;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error listando puntos", e);
-        }
+        return entityManager.createQuery("SELECT p FROM Puntos p", Puntos.class).getResultList();
     }
 
     @Override
-    public List<Puntos> findByCliente(Integer idCliente) {
-        String sql = "SELECT pt.*, c.nombreCampaña FROM puntos pt JOIN campaña c ON pt.idCampaña = c.idCampaña WHERE pt.idCliente = ? ORDER BY pt.idPuntos";
-        List<Puntos> list = new ArrayList<>();
-        try (Connection conn = hikari.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, idCliente);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Puntos p = new Puntos();
-                    p.setIdPuntos(rs.getInt("idPuntos"));
-                    Cliente cl = new Cliente();
-                    cl.setIdCliente(rs.getInt("idCliente"));
-                    p.setCliente(cl);
-                    Campaña camp = new Campaña();
-                    camp.setIdCampaña(rs.getInt("idCampaña"));
-                    camp.setNombreCampaña(rs.getString("nombreCampaña"));
-                    p.setCampaña(camp);
-                    p.setPuntosGanados(rs.getBigDecimal("puntosGanados") != null ? rs.getBigDecimal("puntosGanados").doubleValue() : null);
-                    p.setPuntosCanjeados(rs.getBigDecimal("puntosCanjeados") != null ? rs.getBigDecimal("puntosCanjeados").doubleValue() : null);
-                    Timestamp ts = rs.getTimestamp("fechaRegistro");
-                    p.setFechaRegistro(ts != null ? ts.toLocalDateTime() : null);
-                    list.add(p);
-                }
-                return list;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error buscando puntos por cliente", e);
-        }
+    public List<Puntos> findByClienteId(Integer idCliente) {
+        return entityManager.createQuery(
+                        "SELECT p FROM Puntos p WHERE p.cliente.idCliente = :idCliente ORDER BY p.fechaRegistro DESC", Puntos.class)
+                .setParameter("idCliente", idCliente)
+                .getResultList();
     }
 
     @Override
-    public Double getPuntosDisponibles(Integer idCliente) {
-        String sql = "SELECT SUM(puntosGanados - puntosCanjeados) AS puntosDisponibles FROM puntos WHERE idCliente = ?";
-        try (Connection conn = hikari.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, idCliente);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    java.math.BigDecimal val = rs.getBigDecimal("puntosDisponibles");
-                    return val != null ? val.doubleValue() : 0.0;
-                } else return 0.0;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error calculando puntos disponibles", e);
-        }
+    public BigDecimal getPuntosDisponibles(Integer idCliente) {
+        BigDecimal result = entityManager.createQuery(
+                        "SELECT SUM(p.puntosGanados - p.puntosCanjeados) FROM Puntos p WHERE p.cliente.idCliente = :idCliente", BigDecimal.class)
+                .setParameter("idCliente", idCliente)
+                .getSingleResult();
+        return result != null ? result : BigDecimal.ZERO;
     }
 }

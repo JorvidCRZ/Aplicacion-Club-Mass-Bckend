@@ -1,8 +1,8 @@
 package backendClubMass.backendClubMass.dao;
 
 
-import backendClubMass.backendClubMass.model.Campaña;
+import backendClubMass.backendClubMass.model.Campana;
 
-public interface CampañaDAO extends GenericDAO<Campaña, Integer> {
+public interface CampañaDAO extends GenericDAO<Campana, Integer> {
 
 }
